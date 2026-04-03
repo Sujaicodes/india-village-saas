@@ -1,0 +1,54 @@
+{
+  "name": "india-village-data-import",
+  "version": "1.0.0",
+  "description": "Import script for India village-level geographical data",
+  "main": "dist/import_script.js",
+  "scripts": {
+    "build": "tsc",
+    "import": "node dist/import_script.js",
+    "import:dev": "ts-node src/import_script.ts",
+    "validate": "ts-node src/validate_only.ts",
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [
+    "india",
+    "villages",
+    "geographical-data",
+    "etl",
+    "import"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "cli-progress": "^3.12.0",
+    "cors": "^2.8.6",
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.3.1",
+    "express-rate-limit": "^8.3.2",
+    "helmet": "^8.1.0",
+    "pg": "^8.11.3",
+    "winston": "^3.11.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/cli-progress": "^3.11.5",
+    "@types/cors": "^2.8.19",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.19.37",
+    "@types/pg": "^8.10.9",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
