@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoVillage API — India's Village Data Infrastructure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #fafaf8;
+    --bg2: #f4f3ef;
+    --bg3: #eceae3;
+    --ink: #1a1916;
+    --ink2: #4a4844;
+    --ink3: #8a8784;
+    --accent: #1a6b3c;
+    --accent2: #2d9e60;
+    --accent-light: #e8f5ee;
+    --border: #e2e0d8;
+    --border2: #ccc9be;
+    --yellow: #f5c842;
+    --red: #e05c3a;
+    --blue: #2d6be4;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(250,250,248,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem; font-weight: 600;
+    color: var(--ink); text-decoration: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .nav-logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+  .nav-links { display: flex; align-items: center; gap: 2rem; }
+  .nav-links a {
+    color: var(--ink2); text-decoration: none; font-size: 0.9rem;
+    font-weight: 500; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta {
+    background: var(--ink); color: var(--bg) !important;
+    padding: 0.45rem 1.1rem; border-radius: 6px;
+    font-size: 0.85rem !important;
+  }
+  .nav-cta:hover { background: var(--ink2); }
+
+  /* ── PAGE SYSTEM ── */
+  .page { display: none; min-height: 100vh; padding-top: 60px; }
+  .page.active { display: block; }
+
+  /* ── HERO ── */
+  .hero {
+    max-width: 900px; margin: 0 auto;
+    padding: 6rem 2rem 4rem;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-light); color: var(--accent);
+    padding: 0.3rem 0.9rem; border-radius: 100px;
+    font-size: 0.8rem; font-weight: 500; margin-bottom: 2rem;
+    border: 1px solid #c3e6d0;
+  }
+  .hero-badge-dot { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2.4rem, 6vw, 3.8rem);
+    font-weight: 600; line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.2rem;
+    color: var(--ink);
+  }
+  h1 em { font-style: italic; color: var(--accent); }
+
+  .hero-sub {
+    font-size: 1.1rem; color: var(--ink2);
+    max-width: 560px; margin: 0 auto 2.5rem;
+    line-height: 1.7; font-weight: 300;
+  }
+
+  .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 4rem; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 0.75rem 1.6rem; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 500;
+    cursor: pointer; border: none; text-decoration: none;
+    transition: all 0.18s;
+  }
+  .btn-primary { background: var(--ink); color: var(--bg); }
+  .btn-primary:hover { background: #2d2c28; transform: translateY(-1px); box-shadow: var(--shadow); }
+  .btn-secondary { background: var(--bg); color: var(--ink); border: 1.5px solid var(--border2); }
+  .btn-secondary:hover { border-color: var(--ink3); transform: translateY(-1px); }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-accent:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  /* ── CODE PREVIEW ── */
+  .code-preview {
+    background: var(--ink); border-radius: 14px;
+    overflow: hidden; text-align: left;
+    box-shadow: var(--shadow-lg);
+    max-width: 680px; margin: 0 auto 5rem;
+  }
+  .code-header {
+    padding: 0.8rem 1.2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-dot:nth-child(1) { background: #ff5f56; }
+  .code-dot:nth-child(2) { background: #ffbd2e; }
+  .code-dot:nth-child(3) { background: #27c93f; }
+  .code-lang { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 0.72rem; color: rgba(255,255,255,0.3); }
+  .code-body { padding: 1.4rem 1.6rem; font-family: 'DM Mono', monospace; font-size: 0.82rem; line-height: 1.8; }
+  .c-comment { color: #6b7280; }
+  .c-key { color: #93c5fd; }
+  .c-str { color: #86efac; }
+  .c-num { color: #fca5a5; }
+  .c-kw { color: #c4b5fd; }
+  .c-fn { color: #fde68a; }
+
+  /* ── STATS ── */
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; margin: 0 2rem 5rem;
+    max-width: 860px; margin-left: auto; margin-right: auto;
+  }
+  .stat { background: var(--bg); padding: 2rem 1.5rem; text-align: center; }
+  .stat-num {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem; font-weight: 600;
+    color: var(--ink); display: block;
+  }
+  .stat-label { font-size: 0.82rem; color: var(--ink3); margin-top: 0.2rem; }
+
+  /* ── FEATURES ── */
+  .section { padding: 4rem 2rem; max-width: 980px; margin: 0 auto; }
+  .section-label {
+    font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink3); margin-bottom: 0.6rem;
+  }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 600; margin-bottom: 3rem; line-height: 1.25;
+  }
+
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .feature-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.8rem;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .feature-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+  .feature-icon {
+    width: 40px; height: 40px; border-radius: 8px;
+    background: var(--accent-light); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 1.2rem; margin-bottom: 1rem;
+  }
+  .feature-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .feature-card p { font-size: 0.85rem; color: var(--ink2); line-height: 1.6; }
+
+  /* ── ENDPOINTS ── */
+  .endpoints { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 2rem; }
+  .endpoint {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.9rem 1.2rem;
+    transition: border-color 0.2s;
+  }
+  .endpoint:hover { border-color: var(--border2); }
+  .method {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    font-weight: 500; padding: 0.2rem 0.5rem; border-radius: 4px;
+    min-width: 42px; text-align: center;
+  }
+  .method.get { background: #dcfce7; color: #15803d; }
+  .method.post { background: #dbeafe; color: #1d4ed8; }
+  .endpoint-path { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--ink); flex: 1; }
+  .endpoint-desc { font-size: 0.8rem; color: var(--ink3); }
+
+  /* ── PRICING ── */
+  .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 2rem; }
+  .plan {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.8rem;
+    position: relative; transition: box-shadow 0.2s;
+  }
+  .plan:hover { box-shadow: var(--shadow); }
+  .plan.featured {
+    background: var(--ink); color: var(--bg);
+    border-color: var(--ink);
+  }
+  .plan-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: white;
+    font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.8rem;
+    border-radius: 100px; white-space: nowrap;
+  }
+  .plan-name { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .plan.featured .plan-name { color: rgba(255,255,255,0.6); }
+  .plan-price {
+    font-family: 'Fraunces', serif; font-size: 2.2rem;
+    font-weight: 600; line-height: 1; margin-bottom: 0.2rem;
+  }
+  .plan-period { font-size: 0.78rem; color: var(--ink3); margin-bottom: 1.5rem; }
+  .plan.featured .plan-period { color: rgba(255,255,255,0.5); }
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
+  .plan-features li { font-size: 0.82rem; display: flex; align-items: center; gap: 0.5rem; }
+  .plan-features li::before { content: '✓'; color: var(--accent2); font-weight: 600; font-size: 0.9rem; }
+  .plan.featured .plan-features li::before { color: #86efac; }
+  .plan.featured .plan-features li { color: rgba(255,255,255,0.8); }
+  .plan-btn {
+    width: 100%; padding: 0.65rem; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+    font-weight: 500; cursor: pointer; border: 1.5px solid var(--border2);
+    background: transparent; color: var(--ink); transition: all 0.18s;
+  }
+  .plan-btn:hover { background: var(--bg2); }
+  .plan.featured .plan-btn { background: white; color: var(--ink); border-color: white; }
+  .plan.featured .plan-btn:hover { background: var(--bg2); }
+
+  /* ── AUTH PAGES ── */
+  .auth-wrap {
+    min-height: calc(100vh - 60px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem;
+  }
+  .auth-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 14px; padding: 2.5rem;
+    width: 100%; max-width: 420px;
+    box-shadow: var(--shadow-lg);
+  }
+  .auth-logo {
+    font-family: 'Fraunces', serif; font-size: 1.1rem;
+    font-weight: 600; margin-bottom: 2rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .auth-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .auth-sub { font-size: 0.85rem; color: var(--ink2); margin-bottom: 2rem; }
+  .form-group { margin-bottom: 1.1rem; }
+  .form-label { display: block; font-size: 0.82rem; font-weight: 500; margin-bottom: 0.4rem; }
+  .form-input {
+    width: 100%; padding: 0.65rem 0.9rem;
+    border: 1.5px solid var(--border); border-radius: 7px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    background: var(--bg); color: var(--ink);
+    transition: border-color 0.18s;
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-btn {
+    width: 100%; padding: 0.75rem;
+    background: var(--ink); color: var(--bg);
+    border: none; border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 500;
+    cursor: pointer; margin-top: 0.5rem;
+    transition: background 0.18s;
+  }
+  .form-btn:hover { background: var(--ink2); }
+  .auth-switch { text-align: center; font-size: 0.82rem; color: var(--ink2); margin-top: 1.5rem; }
+  .auth-switch a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .divider { display: flex; align-items: center; gap: 1rem; margin: 1.2rem 0; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .divider span { font-size: 0.75rem; color: var(--ink3); }
+
+  /* ── DASHBOARD ── */
+  .dashboard { display: flex; min-height: calc(100vh - 60px); }
+  .sidebar {
+    width: 220px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 0; position: sticky;
+    top: 60px; height: calc(100vh - 60px);
+    background: var(--bg);
+  }
+  .sidebar-section { padding: 0 1rem; margin-bottom: 1.5rem; }
+  .sidebar-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); margin-bottom: 0.5rem; padding: 0 0.5rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 8px;
+    padding: 0.5rem 0.7rem; border-radius: 6px;
+    font-size: 0.85rem; color: var(--ink2); text-decoration: none;
+    cursor: pointer; transition: all 0.15s; margin-bottom: 2px;
+    border: none; background: none; width: 100%; text-align: left;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .sidebar-link:hover { background: var(--bg2); color: var(--ink); }
+  .sidebar-link.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+  .dash-content { flex: 1; padding: 2rem; overflow-y: auto; }
+  .dash-header { margin-bottom: 2rem; }
+  .dash-header h2 { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.2rem; }
+  .dash-header p { font-size: 0.85rem; color: var(--ink2); }
+
+  .dash-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .dash-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.4rem;
+  }
+  .dash-card-label { font-size: 0.78rem; color: var(--ink3); margin-bottom: 0.4rem; }
+  .dash-card-value { font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 600; }
+  .dash-card-sub { font-size: 0.75rem; color: var(--accent2); margin-top: 0.2rem; }
+
+  .api-key-box {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;
+  }
+  .api-key-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .api-key-header h3 { font-size: 0.95rem; font-weight: 600; }
+  .api-key-row {
+    display: flex; align-items: center; gap: 0.8rem;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 7px; padding: 0.7rem 1rem;
+  }
+  .api-key-value { font-family: 'DM Mono', monospace; font-size: 0.82rem; flex: 1; color: var(--ink2); }
+  .copy-btn {
+    padding: 0.35rem 0.8rem; border-radius: 5px;
+    font-size: 0.78rem; font-weight: 500;
+    border: 1px solid var(--border2); background: var(--bg);
+    cursor: pointer; transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .copy-btn:hover { background: var(--bg3); }
+
+  /* ── DOCS ── */
+  .docs-layout { display: flex; min-height: calc(100vh - 60px); }
+  .docs-sidebar {
+    width: 220px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 0; position: sticky;
+    top: 60px; height: calc(100vh - 60px);
+    overflow-y: auto; background: var(--bg);
+  }
+  .docs-content { flex: 1; padding: 2.5rem 3rem; max-width: 780px; }
+  .docs-content h2 {
+    font-family: 'Fraunces', serif; font-size: 1.6rem;
+    font-weight: 600; margin-bottom: 0.8rem; margin-top: 2.5rem;
+  }
+  .docs-content h2:first-child { margin-top: 0; }
+  .docs-content h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+  .docs-content p { font-size: 0.9rem; color: var(--ink2); line-height: 1.8; margin-bottom: 1rem; }
+  .docs-content code {
+    font-family: 'DM Mono', monospace; font-size: 0.8rem;
+    background: var(--bg2); padding: 0.15rem 0.4rem;
+    border-radius: 4px; color: var(--ink);
+  }
+  .docs-code {
+    background: var(--ink); border-radius: 10px;
+    padding: 1.2rem 1.5rem; margin: 1rem 0;
+    font-family: 'DM Mono', monospace; font-size: 0.82rem;
+    line-height: 1.8; overflow-x: auto;
+  }
+  .param-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+  .param-table th { text-align: left; padding: 0.6rem 1rem; background: var(--bg2); font-weight: 600; font-size: 0.78rem; border-bottom: 1px solid var(--border); }
+  .param-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); color: var(--ink2); }
+  .param-table td:first-child { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--ink); }
+  .tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.72rem; font-weight: 500; }
+  .tag.required { background: #fee2e2; color: #b91c1c; }
+  .tag.optional { background: var(--bg2); color: var(--ink3); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.82rem; color: var(--ink3);
+  }
+  footer a { color: var(--ink3); text-decoration: none; }
+  footer a:hover { color: var(--ink); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 2rem; right: 2rem;
+    background: var(--ink); color: var(--bg);
+    padding: 0.7rem 1.2rem; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 500;
+    transform: translateY(100px); opacity: 0;
+    transition: all 0.3s; z-index: 999;
+    box-shadow: var(--shadow-lg);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  @media (max-width: 768px) {
+    .features-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr 1fr; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .dash-cards { grid-template-columns: 1fr; }
+    .sidebar, .docs-sidebar { display: none; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#" onclick="showPage('home')">
+    <span class="nav-logo-dot"></span>
+    GeoVillage API
+  </a>
+  <div class="nav-links">
+    <a href="#" onclick="showPage('docs')">Docs</a>
+    <a href="#" onclick="showPage('pricing')">Pricing</a>
+    <a href="#" onclick="showPage('login')">Sign in</a>
+    <a href="#" class="nav-cta" onclick="showPage('signup')">Get API Key →</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ HOME -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      254,277 villages · Live API
+    </div>
+    <h1>India's Village Data<br><em>Infrastructure</em></h1>
+    <p class="hero-sub">
+      Complete geographical hierarchy for every village, district, and state in India.
+      Built for developers, fintechs, logistics, and govtech teams.
+    </p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="showPage('signup')">Start for free →</button>
+      <button class="btn btn-secondary" onclick="showPage('docs')">View documentation</button>
+    </div>
+
+    <div class="code-preview">
+      <div class="code-header">
+        <div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div>
+        <span class="code-lang">JavaScript</span>
+      </div>
+      <div class="code-body">
+        <span class="c-comment">// Search any village across India</span><br>
+        <span class="c-kw">const</span> <span class="c-key">response</span> = <span class="c-kw">await</span> <span class="c-fn">fetch</span>(<span class="c-str">'https://village-geo-api.vercel.app/api/villages/search?q=Pangi'</span>, {<br>
+        &nbsp;&nbsp;headers: { <span class="c-str">'X-API-Key'</span>: <span class="c-str">'your_api_key'</span> }<br>
+        });<br><br>
+        <span class="c-kw">const</span> { <span class="c-key">data</span> } = <span class="c-kw">await</span> response.<span class="c-fn">json</span>();<br>
+        <span class="c-comment">// → [ { village_name: "Pangi", district: "Chamba",</span><br>
+        <span class="c-comment">//       state: "Himachal Pradesh", lgd_code: "00083" } ]</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><span class="stat-num">254K+</span><span class="stat-label">Villages indexed</span></div>
+    <div class="stat"><span class="stat-num">28</span><span class="stat-label">States & UTs</span></div>
+    <div class="stat"><span class="stat-num">459</span><span class="stat-label">Districts</span></div>
+    <div class="stat"><span class="stat-num">&lt;100ms</span><span class="stat-label">Avg response time</span></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Features</div>
+    <div class="section-title">Everything you need to<br>build location-aware products</div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Fuzzy Search</h3>
+        <p>Find villages by name with typo-tolerance using trigram matching. Works across all 254K villages.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗂️</div>
+        <h3>Full Hierarchy</h3>
+        <p>State → District → Sub-District → Village. Navigate the complete administrative hierarchy of India.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Sub-100ms Queries</h3>
+        <p>Optimized PostgreSQL indexes ensure lightning-fast responses even at scale.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔑</div>
+        <h3>API Key Auth</h3>
+        <p>Secure API key authentication with per-minute and per-day rate limiting per plan.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Usage Analytics</h3>
+        <p>Track your API usage in real-time. Monthly partitioned logs for every request.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏛️</div>
+        <h3>Census 2011 Data</h3>
+        <p>Sourced from official Census 2011 and LGD data. Accurate, authoritative village codes.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">API Endpoints</div>
+    <div class="section-title">7 endpoints. Clean REST API.</div>
+    <div class="endpoints">
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/api/states</span>
+        <span class="endpoint-desc">List all states and UTs</span>
+      </div>
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/api/districts?state_code=02</span>
+        <span class="endpoint-desc">Districts by state</span>
+      </div>
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/api/sub-districts?district_code=023</span>
+        <span class="endpoint-desc">Sub-districts by district</span>
+      </div>
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/api/villages/search?q=Pangi</span>
+        <span class="endpoint-desc">Fuzzy search villages</span>
+      </div>
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/api/villages/:lgd_code</span>
+        <span class="endpoint-desc">Get village by LGD code</span>
+      </div>
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/api/hierarchy/:village_code</span>
+        <span class="endpoint-desc">Full hierarchy for a village</span>
+      </div>
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/api/health</span>
+        <span class="endpoint-desc">API health check</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>© 2026 GeoVillage API. Built for India.</span>
+    <div style="display:flex;gap:1.5rem">
+      <a href="#" onclick="showPage('docs')">Docs</a>
+      <a href="#" onclick="showPage('pricing')">Pricing</a>
+      <a href="#">GitHub</a>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SIGNUP -->
+<div id="page-signup" class="page">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo"><span class="nav-logo-dot"></span> GeoVillage API</div>
+      <div class="auth-title">Create your account</div>
+      <div class="auth-sub">Get your API key and start building in minutes.</div>
+      <div class="form-group">
+        <label class="form-label">Full name</label>
+        <input class="form-input" type="text" placeholder="Sujai Kumar">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input class="form-input" type="email" placeholder="you@company.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" placeholder="Min. 8 characters">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Company / Project (optional)</label>
+        <input class="form-input" type="text" placeholder="Your startup or project name">
+      </div>
+      <button class="form-btn" onclick="showPage('dashboard')">Create account & get API key →</button>
+      <div class="auth-switch">Already have an account? <a href="#" onclick="showPage('login')">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ LOGIN -->
+<div id="page-login" class="page">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo"><span class="nav-logo-dot"></span> GeoVillage API</div>
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to your developer account.</div>
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input class="form-input" type="email" placeholder="you@company.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" placeholder="Your password">
+      </div>
+      <button class="form-btn" onclick="showPage('dashboard')">Sign in →</button>
+      <div class="divider"><span>or</span></div>
+      <div class="auth-switch">Don't have an account? <a href="#" onclick="showPage('signup')">Sign up free</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ DASHBOARD -->
+<div id="page-dashboard" class="page">
+  <div class="dashboard">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Overview</div>
+        <button class="sidebar-link active">📊 Dashboard</button>
+        <button class="sidebar-link">📈 Usage</button>
+        <button class="sidebar-link">🔑 API Keys</button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Account</div>
+        <button class="sidebar-link">💳 Billing</button>
+        <button class="sidebar-link">⚙️ Settings</button>
+        <button class="sidebar-link" onclick="showPage('docs')">📚 Docs</button>
+      </div>
+      <div class="sidebar-section" style="margin-top:auto">
+        <button class="sidebar-link" onclick="showPage('home')">← Back to home</button>
+      </div>
+    </div>
+    <div class="dash-content">
+      <div class="dash-header">
+        <h2>Good morning, Sujai 👋</h2>
+        <p>Here's your API usage overview for April 2026.</p>
+      </div>
+      <div class="dash-cards">
+        <div class="dash-card">
+          <div class="dash-card-label">Requests today</div>
+          <div class="dash-card-value">1,284</div>
+          <div class="dash-card-sub">↑ 12% from yesterday</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-label">Monthly requests</div>
+          <div class="dash-card-value">28,491</div>
+          <div class="dash-card-sub">Free plan · 10K/day limit</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-label">Avg response time</div>
+          <div class="dash-card-value">84ms</div>
+          <div class="dash-card-sub">↓ Faster than last week</div>
+        </div>
+      </div>
+
+      <div class="api-key-box">
+        <div class="api-key-header">
+          <h3>Your API Key</h3>
+          <button class="btn btn-secondary" style="font-size:0.8rem;padding:0.4rem 0.9rem">+ Generate new key</button>
+        </div>
+        <div class="api-key-row">
+          <span class="api-key-value" id="apiKeyDisplay">test-api-key-123••••••••••••••••••••••</span>
+          <button class="copy-btn" onclick="toggleKey()">Show</button>
+          <button class="copy-btn" onclick="copyKey()">Copy</button>
+        </div>
+        <p style="font-size:0.78rem;color:var(--ink3);margin-top:0.8rem">
+          Add this to your requests as <code style="background:var(--bg3);padding:0.1rem 0.4rem;border-radius:4px;font-family:'DM Mono',monospace;font-size:0.75rem">X-API-Key</code> header.
+          Never share your key publicly.
+        </p>
+      </div>
+
+      <div class="api-key-box">
+        <div class="api-key-header">
+          <h3>Quick Test</h3>
+        </div>
+        <div class="docs-code" style="border-radius:8px">
+          <span class="c-comment" style="color:#6b7280"># Test your API key right now</span><br>
+          <span style="color:#86efac">curl</span> <span style="color:#fde68a">https://village-geo-api.vercel.app/api/states</span> \<br>
+          &nbsp;&nbsp;<span style="color:#93c5fd">-H</span> <span style="color:#fca5a5">"X-API-Key: test-api-key-123"</span>
+        </div>
+        <button class="btn btn-secondary" style="font-size:0.82rem" onclick="showPage('docs')">View full documentation →</button>
+      </div>
+
+      <div class="api-key-box">
+        <div class="api-key-header">
+          <h3>Current Plan</h3>
+          <button class="btn btn-accent" style="font-size:0.8rem;padding:0.4rem 0.9rem" onclick="showPage('pricing')">Upgrade</button>
+        </div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap">
+          <div style="flex:1;min-width:140px">
+            <div style="font-size:0.75rem;color:var(--ink3);margin-bottom:0.3rem">Plan</div>
+            <div style="font-weight:600">Free</div>
+          </div>
+          <div style="flex:1;min-width:140px">
+            <div style="font-size:0.75rem;color:var(--ink3);margin-bottom:0.3rem">Rate limit</div>
+            <div style="font-weight:600">60 req/min</div>
+          </div>
+          <div style="flex:1;min-width:140px">
+            <div style="font-size:0.75rem;color:var(--ink3);margin-bottom:0.3rem">Daily limit</div>
+            <div style="font-weight:600">10,000 req/day</div>
+          </div>
+          <div style="flex:1;min-width:140px">
+            <div style="font-size:0.75rem;color:var(--ink3);margin-bottom:0.3rem">Billing</div>
+            <div style="font-weight:600">Free forever</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ PRICING -->
+<div id="page-pricing" class="page">
+  <div class="section" style="text-align:center;padding-top:4rem">
+    <div class="section-label">Pricing</div>
+    <div class="section-title">Simple, transparent pricing</div>
+    <p style="color:var(--ink2);max-width:480px;margin:0 auto 3rem;font-size:0.95rem">
+      Start free. Scale as you grow. No hidden fees, no setup costs.
+    </p>
+    <div class="pricing-grid">
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">₹0</div>
+        <div class="plan-period">forever</div>
+        <ul class="plan-features">
+          <li>10,000 req/day</li>
+          <li>60 req/minute</li>
+          <li>All endpoints</li>
+          <li>Community support</li>
+        </ul>
+        <button class="plan-btn" onclick="showPage('signup')">Get started</button>
+      </div>
+      <div class="plan featured">
+        <div class="plan-badge">Most popular</div>
+        <div class="plan-name">Premium</div>
+        <div class="plan-price">₹999</div>
+        <div class="plan-period">per month</div>
+        <ul class="plan-features">
+          <li>100,000 req/day</li>
+          <li>300 req/minute</li>
+          <li>All endpoints</li>
+          <li>Email support</li>
+          <li>Usage analytics</li>
+        </ul>
+        <button class="plan-btn" onclick="showPage('signup')">Start free trial</button>
+      </div>
+      <div class="plan">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">₹2,999</div>
+        <div class="plan-period">per month</div>
+        <ul class="plan-features">
+          <li>500,000 req/day</li>
+          <li>1,000 req/minute</li>
+          <li>All endpoints</li>
+          <li>Priority support</li>
+          <li>Bulk export</li>
+          <li>SLA guarantee</li>
+        </ul>
+        <button class="plan-btn" onclick="showPage('signup')">Get started</button>
+      </div>
+      <div class="plan">
+        <div class="plan-name">Unlimited</div>
+        <div class="plan-price">₹9,999</div>
+        <div class="plan-period">per month</div>
+        <ul class="plan-features">
+          <li>Unlimited requests</li>
+          <li>Unlimited rate</li>
+          <li>Custom endpoints</li>
+          <li>Dedicated support</li>
+          <li>Custom data fields</li>
+          <li>On-premise option</li>
+        </ul>
+        <button class="plan-btn" onclick="showPage('signup')">Contact sales</button>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <span>© 2026 GeoVillage API. Built for India.</span>
+    <div style="display:flex;gap:1.5rem">
+      <a href="#" onclick="showPage('docs')">Docs</a>
+      <a href="#" onclick="showPage('home')">Home</a>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ DOCS -->
+<div id="page-docs" class="page">
+  <div class="docs-layout">
+    <div class="docs-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Getting Started</div>
+        <button class="sidebar-link active">Introduction</button>
+        <button class="sidebar-link">Authentication</button>
+        <button class="sidebar-link">Rate Limits</button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Endpoints</div>
+        <button class="sidebar-link">States</button>
+        <button class="sidebar-link">Districts</button>
+        <button class="sidebar-link">Sub-Districts</button>
+        <button class="sidebar-link">Villages</button>
+        <button class="sidebar-link">Search</button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Resources</div>
+        <button class="sidebar-link">Error Codes</button>
+        <button class="sidebar-link">Changelog</button>
+      </div>
+    </div>
+    <div class="docs-content">
+      <h2>Introduction</h2>
+      <p>GeoVillage API provides programmatic access to India's complete village-level geographical data — sourced from Census 2011 and the Local Government Directory (LGD). It covers the full administrative hierarchy: State → District → Sub-District → Village.</p>
+      <p>The base URL for all API requests is:</p>
+      <div class="docs-code"><span style="color:#86efac">https://village-geo-api.vercel.app/api</span></div>
+
+      <h2>Authentication</h2>
+      <p>All API requests require an API key passed in the <code>X-API-Key</code> request header. You can get your free API key by <a href="#" onclick="showPage('signup')" style="color:var(--accent)">creating an account</a>.</p>
+      <div class="docs-code">
+        <span style="color:#93c5fd">curl</span> https://village-geo-api.vercel.app/api/states \<br>
+        &nbsp;&nbsp;<span style="color:#fde68a">-H</span> <span style="color:#fca5a5">"X-API-Key: your_api_key_here"</span>
+      </div>
+
+      <h2>GET /api/states</h2>
+      <p>Returns a list of all states and union territories in India.</p>
+      <div class="docs-code">
+        <span style="color:#6b7280">// Response</span><br>
+        {<br>
+        &nbsp;&nbsp;<span style="color:#93c5fd">"success"</span>: <span style="color:#86efac">true</span>,<br>
+        &nbsp;&nbsp;<span style="color:#93c5fd">"count"</span>: <span style="color:#fca5a5">28</span>,<br>
+        &nbsp;&nbsp;<span style="color:#93c5fd">"data"</span>: [<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{ <span style="color:#93c5fd">"state_code"</span>: <span style="color:#fca5a5">"02"</span>, <span style="color:#93c5fd">"state_name"</span>: <span style="color:#86efac">"HIMACHAL PRADESH"</span> },<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;...<br>
+        &nbsp;&nbsp;]<br>
+        }
+      </div>
+
+      <h2>GET /api/villages/search</h2>
+      <p>Search for villages by name using fuzzy matching. Returns matching villages across all states.</p>
+      <table class="param-table">
+        <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+        <tr><td>q</td><td>string</td><td><span class="tag required">required</span></td><td>Search query (village name)</td></tr>
+        <tr><td>state_code</td><td>string</td><td><span class="tag optional">optional</span></td><td>Filter by state code</td></tr>
+        <tr><td>limit</td><td>number</td><td><span class="tag optional">optional</span></td><td>Max results (default: 20)</td></tr>
+      </table>
+      <div class="docs-code">
+        <span style="color:#93c5fd">curl</span> "https://village-geo-api.vercel.app/api/villages/search?q=Pangi&state_code=02" \<br>
+        &nbsp;&nbsp;<span style="color:#fde68a">-H</span> <span style="color:#fca5a5">"X-API-Key: your_api_key"</span>
+      </div>
+
+      <h2>Rate Limits</h2>
+      <p>Rate limits are applied per API key based on your subscription plan. When exceeded, the API returns a <code>429 Too Many Requests</code> response.</p>
+      <table class="param-table">
+        <tr><th>Plan</th><th>Per minute</th><th>Per day</th></tr>
+        <tr><td>Free</td><td>60</td><td>10,000</td></tr>
+        <tr><td>Premium</td><td>300</td><td>100,000</td></tr>
+        <tr><td>Pro</td><td>1,000</td><td>500,000</td></tr>
+        <tr><td>Unlimited</td><td>Unlimited</td><td>Unlimited</td></tr>
+      </table>
+
+      <h2>Error Codes</h2>
+      <table class="param-table">
+        <tr><th>Code</th><th>Meaning</th></tr>
+        <tr><td>401</td><td>Missing or invalid API key</td></tr>
+        <tr><td>429</td><td>Rate limit exceeded</td></tr>
+        <tr><td>404</td><td>Resource not found</td></tr>
+        <tr><td>500</td><td>Internal server error</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">Copied to clipboard!</div>
+
+<script>
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  let keyVisible = false;
+  function toggleKey() {
+    const el = document.getElementById('apiKeyDisplay');
+    keyVisible = !keyVisible;
+    el.textContent = keyVisible ? 'test-api-key-123' : 'test-api-key-123••••••••••••••••••••••';
+    event.target.textContent = keyVisible ? 'Hide' : 'Show';
+  }
+
+  function copyKey() {
+    navigator.clipboard.writeText('test-api-key-123');
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+</script>
+</body>
+</html>
