@@ -31,7 +31,7 @@ const COLUMN_MAP = {
 };
 
 const OUTPUT_HEADERS = [
-  'state_code',
+  '',
   'state_name',
   'district_code',
   'district_name',
